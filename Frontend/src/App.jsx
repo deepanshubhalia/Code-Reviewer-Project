@@ -12,6 +12,7 @@ function App() {
   const [ count, setCount ] = useState(0)
   const [ code, setCode ] = useState(`// Write your code here...`)
 
+  const [ loading, setLoading ] = useState(false)
   const [ review, setReview ] = useState(``)
 
   useEffect(() => {
@@ -19,9 +20,18 @@ function App() {
   }, [])
 
   async function reviewCode() {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-    const response = await axios.post(`${API_URL}/ai/get-review`, { code })
-    setReview(response.data)
+    if (loading) return;
+    setLoading(true)
+    setReview("Analyzing code... Please wait.")
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const response = await axios.post(`${API_URL}/ai/get-review`, { code })
+      setReview(response.data)
+    } catch (err) {
+      setReview("Error: Failed to fetch review. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -46,7 +56,7 @@ function App() {
           </div>
           <div
             onClick={reviewCode}
-            className="review">Review</div>
+            className={`review ${loading ? 'loading' : ''}`}>{loading ? "Reviewing..." : "Review"}</div>
         </div>
         <div className="right">
           <Markdown
